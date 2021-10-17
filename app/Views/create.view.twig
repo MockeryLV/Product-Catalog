@@ -1,0 +1,36 @@
+{% include 'partials/header.twig' %}
+<a href="/product/index">Back</a>
+
+<h1>Create new Product</h1>
+
+<form action="/product/insert" method="post">
+
+    <select id="categories" name="categories[]" multiple="multiple">
+        <option value="" selected>Select category</option>
+        {% for category in categories %}
+            <option value="{{ category.getCategory }}">{{ category.getCategory|capitalize }}</option>
+        {%  endfor %}
+    </select>
+    <br>
+    <br>
+    <label for="name">Product's name:</label>
+    <input id="name" type="text" name="name">
+    <br>
+    <br>
+    <label for="description">Product's description:</label>
+    <br>
+    <textarea cols="40" rows="10" id="description" name="description"></textarea>
+    <br>
+    <br>
+    <label for="price">Product's price:</label>
+    <input id="price" type="number" name="price">
+    <br>
+    <br>
+    <label for="quantity">Product's quantity:</label>
+    <input id="quantity" type="number" name="quantity">
+    <br>
+    <br>
+    <input type="submit">
+</form>
+
+{% include 'partials/footer.twig' %}

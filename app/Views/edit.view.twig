@@ -1,0 +1,31 @@
+{% include 'partials/header.twig' %}
+
+<a href="/product/details/{{ product.getId }}">Back</a>
+
+<div class="edit-form">
+
+    <form action="/product/update/{{ product.getId }}" method="post">
+    <h1>Edit product with id {{ product.getId }}</h1>
+    <label for="name">Name</label>
+    <input type="text" name="name" id="name" value="{{ product.getName }}">
+    <br>
+    <br>
+    <label for="description">Description</label>
+    <br>
+    <textarea rows="10" cols="40" name="description" id="description">{{ product.getDescription }}</textarea>
+    <br>
+    <br>
+    <label for="price">Price</label>
+    <input type="number" name="price" id="price" value="{{ product.getPrice/100 }}">
+    <br>
+    <br>
+    <label for="quantity">Quantity</label>
+    <input type="number" name="quantity" id="quantity" value="{{ product.getQuantity }}">
+    <input type="hidden" name="id" value="{{ product.getId }}">
+    <input type="submit">
+    </form>
+</div>
+
+
+
+{% include 'partials/footer.twig' %}

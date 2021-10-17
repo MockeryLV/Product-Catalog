@@ -1,0 +1,27 @@
+{% include 'partials/header.twig' %}
+
+
+<a href="/product/index">Back</a>
+<h1>{{ product.getName|capitalize }}</h1>
+
+
+<div class="product_info">
+
+    Price: {{ product.getPrice / 100 }}$ <br>
+    Quantity: {{ product.getQuantity }}
+    <h3>Description</h3>
+    <p>{{ product.getDescription|capitalize }}</p>
+    <h3>Categories</h3>
+    <ul>
+        {% for category in product.getCategories%}
+            <li>{{ category.getCategory|capitalize }}</li>
+        {% endfor %}
+    </ul>
+
+    <a href="/product/delete/{{ product.getId }}" onclick="return confirm('Are you shure?');">Delete</a>
+
+    <a href="/product/edit/{{ product.getId }}">Edit</a>
+</div>
+
+
+{% include 'partials/footer.twig' %}

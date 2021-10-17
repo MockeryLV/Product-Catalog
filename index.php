@@ -1,10 +1,52 @@
 <?php
 require_once 'vendor/autoload.php';
 
+use App\View;
+use Twig\Environment;
+use Twig\Loader\ArrayLoader;
+use App\TwigRenderer;
 
-use App\Repositories\Products\MySqlProductsRepository;
+$dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) {
+    $r->addRoute('GET', '/product/index', 'ProductsController@index');
+    $r->addRoute('GET', '/product/details/{id:\d+}', 'ProductsController@details');
+    $r->addRoute('GET', '/product/create', 'ProductsController@create');
+    $r->addRoute('POST', '/product/insert', 'ProductsController@insert');
+    $r->addRoute('GET', '/product/delete/{id:\d+}', 'ProductsController@delete');
+    $r->addRoute('GET', '/product/edit/{id:\d+}', 'ProductsController@edit');
+    $r->addRoute('POST', '/product/update/{id:\d+}', 'ProductsController@update');
+});
 
+// Fetch method and URI from somewhere
+$httpMethod = $_SERVER['REQUEST_METHOD'];
+$uri = $_SERVER['REQUEST_URI'];
 
-$prod = new MySqlProductsRepository();
+// Strip query string (?foo=bar) and decode URI
+if (false !== $pos = strpos($uri, '?')) {
+    $uri = substr($uri, 0, $pos);
+}
+$uri = rawurldecode($uri);
 
-var_dump($prod->getAll()->getProducts());
+$routeInfo = $dispatcher->dispatch($httpMethod, $uri);
+switch ($routeInfo[0]) {
+    case FastRoute\Dispatcher::NOT_FOUND:
+        // ... 404 Not Found
+        break;
+    case FastRoute\Dispatcher::METHOD_NOT_ALLOWED:
+
+        $allowedMethods = $routeInfo[1];
+        // ... 405 Method Not Allowed
+        break;
+    case FastRoute\Dispatcher::FOUND:
+
+        $handler = $routeInfo[1];
+        $vars = $routeInfo[2];
+
+        [$controller, $method] = explode('@', $handler);
+        $controller = 'App\Controllers\\' . $controller;
+        $controller = new $controller();
+        $response = $controller->$method($vars['id']);
+        if($response instanceof View){
+            TwigRenderer::render($response->getPath(), $response->getVars());
+        }
+        break;
+}
