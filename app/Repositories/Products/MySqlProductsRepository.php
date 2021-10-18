@@ -29,11 +29,11 @@ class MySqlProductsRepository implements ProductsRepository
     }
 
 
-
     public function tags(): MySqlTagsRepository
     {
         return $this->tags;
     }
+
     public function categories(): MySqlCategoriesRepository
     {
         return $this->categories;
@@ -48,7 +48,14 @@ class MySqlProductsRepository implements ProductsRepository
         $stmt->execute();
 
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-            $products[] = new Product($row['id'], $row['name'], $row['description'], $row['quantity'], $row['price'], $row['user_id']);
+            $products[] = new Product(
+                $row['id'],
+                $row['name'],
+                $row['description'],
+                $row['quantity'],
+                $row['price'],
+                $row['user_id']
+            );
         }
 
         return new ProductCollection($products);
@@ -63,8 +70,15 @@ class MySqlProductsRepository implements ProductsRepository
 
         $product = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        $categories = $this->categories->getCategoriesByProductId($id)->getCategories();
-        $tags = $this->tags->getTagsByProductId($id)->getTags();
+        $categories = $this
+            ->categories
+            ->getCategoriesByProductId($id)
+            ->getCategories();
+
+        $tags = $this
+            ->tags
+            ->getTagsByProductId($id)
+            ->getTags();
 
 
         return new Product(
@@ -112,7 +126,14 @@ class MySqlProductsRepository implements ProductsRepository
         $stmt->execute([$id]);
 
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-            $products[] = new Product($row['id'], $row['name'], $row['description'], $row['quantity'], $row['price'], $row['user_id']);
+            $products[] = new Product(
+                $row['id'],
+                $row['name'],
+                $row['description'],
+                $row['quantity'],
+                $row['price'],
+                $row['user_id']
+            );
         }
 
         return new ProductCollection($products);
@@ -124,17 +145,59 @@ class MySqlProductsRepository implements ProductsRepository
 
         $products = [];
 
-        $sql = 'SELECT id, name, description, quantity, price, user_id FROM categories LEFT JOIN product_categories USING (category_id) INNER JOIN products WHERE product_id = id AND category = :category;';
+
+        $sql = 'SELECT id, name, description, quantity, price, user_id '
+            . 'FROM categories LEFT JOIN product_categories USING (category_id)'
+            . ' INNER JOIN products WHERE product_id = id AND category = :category;';
+
         $stmt = $this->connection->prepare($sql);
         $stmt->execute(['category' => $category]);
 
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-            $products[] = new Product($row['id'], $row['name'], $row['description'], $row['quantity'], $row['price'], $row['user_id']);
+            $products[] = new Product(
+                $row['id'],
+                $row['name'],
+                $row['description'],
+                $row['quantity'],
+                $row['price'],
+                $row['user_id']
+            );
         }
 
         return new ProductCollection($products);
 
     }
+
+    public function getByTag(string $tag): ProductCollection
+    {
+
+        $products = [];
+
+
+        $sql = 'SELECT id, name, description, quantity, price, user_id '
+            . 'FROM tags LEFT JOIN product_tags USING (tag_id)'
+            . ' INNER JOIN products WHERE product_id = id AND tag = :tag;';
+
+        $stmt = $this->connection->prepare($sql);
+        $stmt->execute(['tag' => $tag]);
+
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $products[] = new Product(
+                $row['id'],
+                $row['name'],
+                $row['description'],
+                $row['quantity'],
+                $row['price'],
+                $row['user_id']
+            );
+        }
+
+        return new ProductCollection($products);
+
+    }
+
+
+
 
     public function insert(array $product): void
     {
@@ -158,13 +221,22 @@ class MySqlProductsRepository implements ProductsRepository
         foreach ($product['categories'] as $category) {
             $sql = 'INSERT INTO product_categories (product_id, category_id) VALUES (:product_id, :category_id)';
             $stmt = $this->connection->prepare($sql);
-            $stmt->execute(['product_id' => $productInfo->getId(), 'category_id' => $this->categories()->getCategoryByName($category)->getId()]);
+            $stmt->execute([
+                'product_id' => $productInfo->getId(),
+                'category_id' => $this
+                    ->categories()
+                    ->getCategoryByName($category)
+                    ->getId()
+            ]);
         }
-        if(!empty($product['tags'][0])){
-            foreach ($product['tags'] as $tag){
+        if (!empty($product['tags'][0])) {
+            foreach ($product['tags'] as $tag) {
                 $sql = 'INSERT INTO product_tags (product_id, tag_id) VALUES (:product_id, :tag_id)';
                 $stmt = $this->connection->prepare($sql);
-                $stmt->execute(['product_id' => $productInfo->getId(), 'tag_id' => $this->tags()->getTagByName($tag)->getId()]);
+                $stmt->execute([
+                    'product_id' => $productInfo->getId(),
+                    'tag_id' => $this->tags()->getTagByName($tag)->getId()
+                ]);
             }
         }
 
@@ -174,22 +246,27 @@ class MySqlProductsRepository implements ProductsRepository
     public function delete(int $id): void
     {
 
-        if($_SESSION['id'] == $this->getById($id)->getUserId()){
+        if ($_SESSION['id'] == $this->getById($id)->getUserId()) {
             $sql = 'DELETE FROM products WHERE id = :id AND user_id=:user_id';
             $stmt = $this->connection->prepare($sql);
-            $stmt->execute(['id' => $id, 'user_id' => $_SESSION['id']]);
+            $stmt->execute([
+                'id' => $id,
+                'user_id' => $_SESSION['id']
+            ]);
             $sql = 'DELETE FROM product_categories WHERE product_id = ?';
             $stmt = $this->connection->prepare($sql);
             $stmt->execute([$id]);
         }
 
 
-
     }
 
     public function update(array $product)
     {
-        $sql = 'UPDATE products SET name=:name, description=:description, quantity=:quantity, price=:price WHERE id=:id AND user_id=:user_id';
+        $sql = 'UPDATE products SET name=:name,'
+            . ' description=:description, quantity=:quantity, price=:price '
+            . 'WHERE id=:id AND user_id=:user_id';
+
         $stmt = $this->connection->prepare($sql);
         $stmt->execute([
             'name' => $product['name'],
@@ -199,24 +276,30 @@ class MySqlProductsRepository implements ProductsRepository
             'id' => $product['id'],
             'user_id' => $_SESSION['id']
         ]);
-        if($product['tags']){
+        if ($product['tags']) {
 
-                $sql = 'DELETE FROM product_tags WHERE product_id = :product_id';
-                $stmt = $this->connection->prepare($sql);
-                $stmt->execute(['product_id' => $product['id']]);
+            $sql = 'DELETE FROM product_tags WHERE product_id = :product_id';
+            $stmt = $this->connection->prepare($sql);
+            $stmt->execute(['product_id' => $product['id']]);
 
-                if(!empty($product['tags'][0])){
-                    foreach ($product['tags'] as $tag){
-                        /*
-                         * @var Tag $tag
-                         */
-                        if($this->tags->getTagByName($tag)){
-                            $sql = 'INSERT INTO product_tags (product_id, tag_id) VALUES (:product_id, :tag_id)';
-                            $stmt = $this->connection->prepare($sql);
-                            $stmt->execute(['product_id' => $product['id'], 'tag_id' => $this->tags->getTagByName($tag)->getId()]);
-                        }
+            if (!empty($product['tags'][0])) {
+                foreach ($product['tags'] as $tag) {
+                    /*
+                     * @var Tag $tag
+                     */
+                    if ($this->tags->getTagByName($tag)) {
+                        $sql = 'INSERT INTO product_tags (product_id, tag_id) VALUES (:product_id, :tag_id)';
+                        $stmt = $this->connection->prepare($sql);
+                        $stmt->execute([
+                            'product_id' => $product['id'],
+                            'tag_id' => $this
+                                ->tags
+                                ->getTagByName($tag)
+                                ->getId()
+                        ]);
                     }
                 }
+            }
 
 
         }

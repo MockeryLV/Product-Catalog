@@ -46,7 +46,7 @@ class UserController
     public function register(): void
     {
 
-        $this->users->register($_POST);
+        if($this->users->register($_POST));
 
         header('Location: /home/login');
     }

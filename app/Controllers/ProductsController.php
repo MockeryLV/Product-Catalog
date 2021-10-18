@@ -24,11 +24,20 @@ class ProductsController
         } elseif ($_GET['category']) {
             $products = $this->products->getByCategory($_GET['category'])->getProducts();
 
+        } elseif ($_GET['tag']) {
+            $products = $this->products->getByTag($_GET['tag'])->getProducts();
         } else {
             $products = $this->products->getAll()->getProducts();
         }
         $categories = $this->products->categories()->getAllCategories()->getCategories();
-        return new View('index.view.twig', ['products' => $products, 'categories' => $categories, 'currentCategory' => $_GET['category']]);
+        $tags = $this->products->tags()->getAllTag()->getTags();
+        return new View('index.view.twig', [
+            'products' => $products,
+            'categories' => $categories,
+            'currentCategory' => $_GET['category'],
+            'tags' => $tags,
+            'currentTag' => $_GET['tag']
+        ]);
 
     }
 
@@ -57,7 +66,7 @@ class ProductsController
         return new View('create.view.twig',
             [
                 'categories' => $this->products->categories()->getAllCategories()->getCategories(),
-            'tags' => $this->products->tags()->getAllTag()->getTags()
+                'tags' => $this->products->tags()->getAllTag()->getTags()
             ]);
 
     }
@@ -95,7 +104,7 @@ class ProductsController
         $this->products->update($_POST);
 
 
-        header("Location: /home/products/details/".$_POST['id']);
+        header("Location: /home/products/details/" . $_POST['id']);
     }
 
     public function indexByUserId(): View

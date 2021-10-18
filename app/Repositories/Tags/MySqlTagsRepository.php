@@ -34,7 +34,10 @@ class MySqlTagsRepository
         $stmt = $this->connection->prepare($sql);
         $stmt->execute();
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-            $tags[] = new Tag($row['tag_id'], $row['tag']);
+            $tags[] = new Tag(
+                $row['tag_id'],
+                $row['tag']
+            );
         }
 
         return new TagsCollection($tags);
@@ -50,7 +53,10 @@ class MySqlTagsRepository
         $stmt->execute([$name]);
 
         $category = $stmt->fetch(PDO::FETCH_ASSOC);
-        return new Tag($category['tag_id'], $category['tag']);
+        return new Tag(
+            $category['tag_id'],
+            $category['tag']
+        );
     }
 
 
@@ -58,12 +64,18 @@ class MySqlTagsRepository
     {
 
 
-        $sql = 'SELECT tag, tag_id FROM tags LEFT JOIN product_tags USING(tag_id) INNER JOIN products WHERE id = :id AND product_id = :id;';
+        $sql = 'SELECT tag, tag_id FROM tags LEFT JOIN product_tags'
+            . ' USING(tag_id) INNER JOIN products '
+            . 'WHERE id = :id AND product_id = :id;';
+
         $stmt = $this->connection->prepare($sql);
         $stmt->execute(['id' => $id]);
         $tags = [];
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-            $tags[] = new Tag($row['tag_id'], $row['tag']);
+            $tags[] = new Tag(
+                $row['tag_id'],
+                $row['tag']
+            );
         }
 
         return new TagsCollection($tags);

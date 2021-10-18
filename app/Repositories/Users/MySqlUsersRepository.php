@@ -3,6 +3,7 @@
 namespace App\Repositories\Users;
 
 use App\Repositories\UsersRepository;
+use App\Validations\RegisterValidator;
 use PDO;
 
 class MySqlUsersRepository implements UsersRepository
@@ -24,6 +25,7 @@ class MySqlUsersRepository implements UsersRepository
 
     public function authenticate(array $loginData): bool
     {
+
         $sql = 'SELECT * FROM users WHERE username=:username';
         $stmt = $this->connection->prepare($sql);
         $stmt->execute([
@@ -44,27 +46,46 @@ class MySqlUsersRepository implements UsersRepository
                 $_SESSION['id'] = $id;
                 $_SESSION['username'] = $username;
 
+                unset($_SESSION['errors']['loginFail']);
                 return true;
             }
         }
+
+        $_SESSION['errors']['loginFail'] = 'Username or/and password not correct!';
+
+
         return false;
 
     }
 
-    public function register(array $user): void
+    public function register(array $user): bool
     {
 
-        if ($user['password'] === $user['confirmpassword']) {
+        if (
+            RegisterValidator::usernameValidate(
+                $user['username']
+            )
+            && RegisterValidator::passwordValidate(
+                $user['password'],
+                $user['confirmpassword'])
+            && RegisterValidator::emailValidate(
+                $user['email']
+            )
+        ) {
 
-            $sql = 'INSERT INTO users (username, password, email) VALUES (:username, :password, :email)';
-            $stmt = $this->connection->prepare($sql);
-            $stmt->execute([
-                'username' => $user['username'],
-                'password' => password_hash($user['password'], PASSWORD_BCRYPT),
-                'email' => $user['email']
-            ]);
+                $sql = 'INSERT INTO users (username, password, email) VALUES (:username, :password, :email)';
+                $stmt = $this->connection->prepare($sql);
+                $stmt->execute([
+                    'username' => $user['username'],
+                    'password' => password_hash($user['password'], PASSWORD_BCRYPT),
+                    'email' => $user['email']
+                ]);
+                return true;
 
+        } else {
+            header('Location: /home/registration');
         }
+
 
     }
 }

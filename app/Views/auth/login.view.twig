@@ -1,4 +1,6 @@
 {% include 'partials/header.twig' %}
+
+
 <a href="/home/registration">Don't have an account?</a>
 
 <div class="login-form">
@@ -10,6 +12,7 @@
         <input type="submit">
     </form>
 </div>
+<span style="color: red">{{ errors['loginFail'] }}</span>
 
 
 {% include 'partials/footer.twig' %}

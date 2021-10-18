@@ -14,7 +14,16 @@ class Product
     private array $categories;
     private array $tags;
 
-    public function __construct(int $id, string $name, string $description, int $quantity, int $price, int $user_id, array $categories = [], array $tags = [])
+    public function __construct(
+        int $id,
+        string $name,
+        string $description,
+        int $quantity,
+        int $price,
+        int $user_id,
+        array $categories = [],
+        array $tags = []
+    )
     {
 
         $this->id = $id;

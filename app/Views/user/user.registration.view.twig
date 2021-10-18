@@ -5,19 +5,28 @@
 
 <form action="/home/register" method="post">
     <label for="username">Username</label>
-    <input name="username" type="text" id="username">
+    <input value="" name="username" type="text" id="username"><span style="color: red">
+        {{ errors['registration']['username'] }}
+    </span>
     <br>
     <br>
     <label for="password">Password</label>
-    <input name="password" type="password" id="password">
+    <input name="password" type="password" id="password"><span style="color: red">
+        {{ errors['registration']['password'] }}
+    </span>
     <br>
     <br>
     <label for="confirmpassword">Confirm Password</label>
-    <input name="confirmpassword" type="password" id="confirmpassword">
+    <input name="confirmpassword" type="password" id="confirmpassword"><span style="color: red">
+        {{ errors['registration']['password'] }}
+    </span>
     <br>
     <br>
     <label for="email">Email</label>
     <input name="email" type="email" id="email">
+    <span style="color: red">
+        {{ errors['registration']['email'] }}
+    </span>
     <br>
     <br>
     <input type="submit" value="Register">

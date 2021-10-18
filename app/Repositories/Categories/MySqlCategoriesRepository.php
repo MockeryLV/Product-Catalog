@@ -36,7 +36,10 @@ class MySqlCategoriesRepository implements CategoriesRepository
         $stmt = $this->connection->prepare($sql);
         $stmt->execute();
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-            $categories[] = new Category($row['category_id'], $row['category']);
+            $categories[] = new Category(
+                $row['category_id'],
+                $row['category']
+            );
         }
 
         return new CategoryCollection($categories);
@@ -46,12 +49,17 @@ class MySqlCategoriesRepository implements CategoriesRepository
     public function getCategoriesByProductId(int $id): CategoryCollection
     {
 
-        $sql = 'SELECT category, category_id FROM categories LEFT JOIN product_categories USING(category_id) INNER JOIN products WHERE id = :id AND product_id = :id;';
+        $sql = 'SELECT category, category_id FROM categories LEFT JOIN'
+            .' product_categories USING(category_id) '
+            .'INNER JOIN products WHERE id = :id AND product_id = :id;';
         $stmt = $this->connection->prepare($sql);
         $stmt->execute(['id' => $id]);
         $categories = [];
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-            $categories[] = new Category($row['category_id'], $row['category']);
+            $categories[] = new Category(
+                $row['category_id'],
+                $row['category']
+            );
         }
 
         return new CategoryCollection($categories);
@@ -67,7 +75,10 @@ class MySqlCategoriesRepository implements CategoriesRepository
         $stmt->execute([$name]);
 
         $category = $stmt->fetch(PDO::FETCH_ASSOC);
-        return new Category($category['category_id'], $category['category']);
+        return new Category(
+            $category['category_id'],
+            $category['category']
+        );
     }
 
 }

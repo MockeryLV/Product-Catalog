@@ -21,6 +21,19 @@
     </select>
     <input type="submit">
 </form>
+
+<form action="/product/index" method="get">
+    Search by category:
+    <select id="tag" name="tag">
+        <option value="" selected>{{ currentTag |capitalize }}</option>
+        {% for tag in tags %}
+            <option value="{{ tag.getTag }}">{{ tag.getTag|capitalize }}</option>
+        {%  endfor %}
+    </select>
+    <input type="submit">
+</form>
+
+
 <ul>
 {% for product in products %}
 
