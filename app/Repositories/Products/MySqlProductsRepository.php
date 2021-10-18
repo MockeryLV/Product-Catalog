@@ -160,7 +160,7 @@ class MySqlProductsRepository implements ProductsRepository
             $stmt = $this->connection->prepare($sql);
             $stmt->execute(['product_id' => $productInfo->getId(), 'category_id' => $this->categories()->getCategoryByName($category)->getId()]);
         }
-        if($product['tags']){
+        if(!empty($product['tags'][0])){
             foreach ($product['tags'] as $tag){
                 $sql = 'INSERT INTO product_tags (product_id, tag_id) VALUES (:product_id, :tag_id)';
                 $stmt = $this->connection->prepare($sql);
@@ -173,7 +173,8 @@ class MySqlProductsRepository implements ProductsRepository
 
     public function delete(int $id): void
     {
-        if ($id === $_SESSION['id']) {
+
+        if($_SESSION['id'] == $this->getById($id)->getUserId()){
             $sql = 'DELETE FROM products WHERE id = :id AND user_id=:user_id';
             $stmt = $this->connection->prepare($sql);
             $stmt->execute(['id' => $id, 'user_id' => $_SESSION['id']]);
@@ -181,6 +182,8 @@ class MySqlProductsRepository implements ProductsRepository
             $stmt = $this->connection->prepare($sql);
             $stmt->execute([$id]);
         }
+
+
 
     }
 

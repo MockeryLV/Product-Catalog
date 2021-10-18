@@ -77,7 +77,7 @@ class ProductsController
 
         $this->products->delete($id);
 
-        header('Location: /product/index');
+        header('Location: /home/products');
     }
 
     public function edit(int $id): View
