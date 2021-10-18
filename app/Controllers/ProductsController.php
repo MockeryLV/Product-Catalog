@@ -54,7 +54,11 @@ class ProductsController
     {
 
 
-        return new View('create.view.twig', ['categories' => $this->products->categories()->getAllCategories()->getCategories()]);
+        return new View('create.view.twig',
+            [
+                'categories' => $this->products->categories()->getAllCategories()->getCategories(),
+            'tags' => $this->products->tags()->getAllTag()->getTags()
+            ]);
 
     }
 
@@ -80,8 +84,8 @@ class ProductsController
     {
 
         $product = $this->products->getById($id);
-
-        return new View('user/user.edit.view.twig', ['product' => $product]);
+        $tags = $this->products->tags()->getAllTag()->getTags();
+        return new View('user/user.edit.view.twig', ['product' => $product, 'tags' => $tags]);
 
     }
 
@@ -90,7 +94,8 @@ class ProductsController
 
         $this->products->update($_POST);
 
-        header('Location: /home/products');
+
+        header("Location: /home/products/details/".$_POST['id']);
     }
 
     public function indexByUserId(): View

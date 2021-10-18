@@ -17,7 +17,18 @@
             <li>{{ category.getCategory|capitalize }}</li>
         {% endfor %}
     </ul>
-
+    <h3>Tags</h3>
+    {% if product.getTags|length > 0 %}
+        <ul>
+            {% for tag in product.getTags%}
+                <li>{{ tag.getTag|capitalize }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <i>(none)</i>
+    {% endif %}
+    <br>
+    <br>
     <a href="/product/delete/{{ product.getId }}" onclick="return confirm('Are you shure?');">Delete</a>
 
     <a href="/product/edit/{{ product.getId }}">Edit</a>

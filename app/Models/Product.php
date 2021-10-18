@@ -12,8 +12,9 @@ class Product
     private int $price;
     private int $user_id;
     private array $categories;
+    private array $tags;
 
-    public function __construct(int $id, string $name, string $description, int $quantity, int $price, int $user_id, array $categories = [])
+    public function __construct(int $id, string $name, string $description, int $quantity, int $price, int $user_id, array $categories = [], array $tags = [])
     {
 
         $this->id = $id;
@@ -23,6 +24,7 @@ class Product
         $this->price = $price;
         $this->user_id = $user_id;
         $this->categories = $categories;
+        $this->tags = $tags;
     }
 
 
@@ -66,4 +68,8 @@ class Product
         return $this->categories;
     }
 
+    public function getTags(): array
+    {
+        return $this->tags;
+    }
 }

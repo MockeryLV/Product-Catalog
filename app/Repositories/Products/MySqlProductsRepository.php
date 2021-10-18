@@ -8,6 +8,7 @@ use App\Models\Collections\ProductCollection;
 use App\Models\Product;
 use App\Repositories\Categories\MySqlCategoriesRepository;
 use App\Repositories\ProductsRepository;
+use App\Repositories\Tags\MySqlTagsRepository;
 use PDO;
 
 class MySqlProductsRepository implements ProductsRepository
@@ -17,14 +18,22 @@ class MySqlProductsRepository implements ProductsRepository
 
     private MySqlCategoriesRepository $categories;
 
+    private MySqlTagsRepository $tags;
+
     public function __construct()
     {
         require_once 'app/Repositories/config.php';
         $this->connection = new PDO($dsn, $user, $password);
         $this->categories = new MySqlCategoriesRepository();
+        $this->tags = new MySqlTagsRepository();
     }
 
 
+
+    public function tags(): MySqlTagsRepository
+    {
+        return $this->tags;
+    }
     public function categories(): MySqlCategoriesRepository
     {
         return $this->categories;
@@ -55,6 +64,8 @@ class MySqlProductsRepository implements ProductsRepository
         $product = $stmt->fetch(PDO::FETCH_ASSOC);
 
         $categories = $this->categories->getCategoriesByProductId($id)->getCategories();
+        $tags = $this->tags->getTagsByProductId($id)->getTags();
+
 
         return new Product(
             $product['id'],
@@ -63,8 +74,10 @@ class MySqlProductsRepository implements ProductsRepository
             $product['quantity'],
             $product['price'],
             $product['user_id'],
-            $categories
+            $categories,
+            $tags
         );
+
 
     }
 
@@ -147,6 +160,13 @@ class MySqlProductsRepository implements ProductsRepository
             $stmt = $this->connection->prepare($sql);
             $stmt->execute(['product_id' => $productInfo->getId(), 'category_id' => $this->categories()->getCategoryByName($category)->getId()]);
         }
+        if($product['tags']){
+            foreach ($product['tags'] as $tag){
+                $sql = 'INSERT INTO product_tags (product_id, tag_id) VALUES (:product_id, :tag_id)';
+                $stmt = $this->connection->prepare($sql);
+                $stmt->execute(['product_id' => $productInfo->getId(), 'tag_id' => $this->tags()->getTagByName($tag)->getId()]);
+            }
+        }
 
     }
 
@@ -176,6 +196,28 @@ class MySqlProductsRepository implements ProductsRepository
             'id' => $product['id'],
             'user_id' => $_SESSION['id']
         ]);
+        if($product['tags']){
+
+                $sql = 'DELETE FROM product_tags WHERE product_id = :product_id';
+                $stmt = $this->connection->prepare($sql);
+                $stmt->execute(['product_id' => $product['id']]);
+
+                if(!empty($product['tags'][0])){
+                    foreach ($product['tags'] as $tag){
+                        /*
+                         * @var Tag $tag
+                         */
+                        if($this->tags->getTagByName($tag)){
+                            $sql = 'INSERT INTO product_tags (product_id, tag_id) VALUES (:product_id, :tag_id)';
+                            $stmt = $this->connection->prepare($sql);
+                            $stmt->execute(['product_id' => $product['id'], 'tag_id' => $this->tags->getTagByName($tag)->getId()]);
+                        }
+                    }
+                }
+
+
+        }
+
     }
 
 

@@ -29,6 +29,14 @@
     <label for="quantity">Product's quantity:</label>
     <input id="quantity" type="number" name="quantity">
     <br>
+    <h3>Choose tags (optional)</h3>
+    <select id="tags" name="tags[]" multiple="multiple">
+        <option value="" selected>Select tag</option>
+        {% for tag in tags %}
+            <option value="{{ tag.getTag }}">{{ tag.getTag|capitalize }}</option>
+        {%  endfor %}
+    </select>
+    <br>
     <br>
     <input type="submit">
 </form>
