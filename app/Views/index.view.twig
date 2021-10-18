@@ -3,6 +3,24 @@
 
 <h1>Products:</h1>
 
+
+<form action="/product/index" method="get">
+    <label for="name">Search by products name</label>
+    <input type="text" name="name" id="name">
+    <input type="submit">
+</form>
+<br>
+
+<form action="/product/index" method="get">
+    Search by category:
+    <select id="category" name="category">
+        <option value="" selected>{{ currentCategory |capitalize }}</option>
+        {% for category in categories %}
+            <option value="{{ category.getCategory }}">{{ category.getCategory|capitalize }}</option>
+        {%  endfor %}
+    </select>
+    <input type="submit">
+</form>
 <ul>
 {% for product in products %}
 
@@ -11,6 +29,5 @@
 {% endfor %}
 </ul>
 
-<a href="/product/create">Add new product</a>
 
 {% include 'partials/footer.twig' %}

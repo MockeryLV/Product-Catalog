@@ -89,6 +89,40 @@ class MySqlProductsRepository implements ProductsRepository
     }
 
 
+    public function getByUserId(int $id): ProductCollection
+    {
+
+        $products = [];
+
+        $sql = 'SELECT * FROM products WHERE user_id = ?';
+        $stmt = $this->connection->prepare($sql);
+        $stmt->execute([$id]);
+
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $products[] = new Product($row['id'], $row['name'], $row['description'], $row['quantity'], $row['price'], $row['user_id']);
+        }
+
+        return new ProductCollection($products);
+
+    }
+
+    public function getByCategory(string $category): ProductCollection
+    {
+
+        $products = [];
+
+        $sql = 'SELECT id, name, description, quantity, price, user_id FROM categories LEFT JOIN product_categories USING (category_id) INNER JOIN products WHERE product_id = id AND category = :category;';
+        $stmt = $this->connection->prepare($sql);
+        $stmt->execute(['category' => $category]);
+
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $products[] = new Product($row['id'], $row['name'], $row['description'], $row['quantity'], $row['price'], $row['user_id']);
+        }
+
+        return new ProductCollection($products);
+
+    }
+
     public function insert(array $product): void
     {
         /*
@@ -102,7 +136,7 @@ class MySqlProductsRepository implements ProductsRepository
             $product['description'],
             $product['quantity'],
             $product['price'] * 100, // multiplied by 100 to save float values as integers (10 will be saved as 1000)
-            1
+            $_SESSION['id']
         ]);
 
         $productInfo = $this->getByName($product['name']);
@@ -119,21 +153,28 @@ class MySqlProductsRepository implements ProductsRepository
 
     public function delete(int $id): void
     {
-        $sql = 'DELETE FROM products WHERE id = ?';
-        $stmt = $this->connection->prepare($sql);
-        $stmt->execute([$id]);
+        if ($id === $_SESSION['id']) {
+            $sql = 'DELETE FROM products WHERE id = :id AND user_id=:user_id';
+            $stmt = $this->connection->prepare($sql);
+            $stmt->execute(['id' => $id, 'user_id' => $_SESSION['id']]);
+            $sql = 'DELETE FROM product_categories WHERE product_id = ?';
+            $stmt = $this->connection->prepare($sql);
+            $stmt->execute([$id]);
+        }
+
     }
 
     public function update(array $product)
     {
-        $sql = 'UPDATE products SET name=:name, description=:description, quantity=:quantity, price=:price WHERE id=:id';
+        $sql = 'UPDATE products SET name=:name, description=:description, quantity=:quantity, price=:price WHERE id=:id AND user_id=:user_id';
         $stmt = $this->connection->prepare($sql);
         $stmt->execute([
             'name' => $product['name'],
             'description' => $product['description'],
             'quantity' => $product['quantity'],
             'price' => $product['price'] * 100, // multiplied by 100 to save float values as integers (10 will be saved as 1000)
-            'id' => $product['id']
+            'id' => $product['id'],
+            'user_id' => $_SESSION['id']
         ]);
     }
 

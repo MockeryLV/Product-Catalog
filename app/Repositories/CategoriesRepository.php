@@ -2,7 +2,8 @@
 
 namespace App\Repositories;
 
-interface CategoriesRepository{
+interface CategoriesRepository
+{
 
     public function getAllCategories();
 

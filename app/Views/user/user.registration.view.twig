@@ -1,0 +1,27 @@
+{% include 'partials/header.twig' %}
+<a href="/home/login">Already have account?</a>
+
+<h1>Registration</h1>
+
+<form action="/home/register" method="post">
+    <label for="username">Username</label>
+    <input name="username" type="text" id="username">
+    <br>
+    <br>
+    <label for="password">Password</label>
+    <input name="password" type="password" id="password">
+    <br>
+    <br>
+    <label for="confirmpassword">Confirm Password</label>
+    <input name="confirmpassword" type="password" id="confirmpassword">
+    <br>
+    <br>
+    <label for="email">Email</label>
+    <input name="email" type="email" id="email">
+    <br>
+    <br>
+    <input type="submit" value="Register">
+    
+</form>
+
+{% include 'partials/footer.twig' %}

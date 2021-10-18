@@ -1,0 +1,15 @@
+{% include 'partials/header.twig' %}
+<a href="/home/registration">Don't have an account?</a>
+
+<div class="login-form">
+    <form action="/home/authenticate" method="post">
+        <label for="username">Username</label>
+        <input name="username" id="username" type="text">
+        <label for="password">Password</label>
+        <input name="password" id="password" type="password">
+        <input type="submit">
+    </form>
+</div>
+
+
+{% include 'partials/footer.twig' %}

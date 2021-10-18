@@ -1,7 +1,7 @@
 {% include 'partials/header.twig' %}
 
 
-<a href="/product/index">Back</a>
+<a href="/home/products">Back</a>
 <h1>{{ product.getName|capitalize }}</h1>
 
 
@@ -18,6 +18,9 @@
         {% endfor %}
     </ul>
 
+    <a href="/product/delete/{{ product.getId }}" onclick="return confirm('Are you shure?');">Delete</a>
+
+    <a href="/product/edit/{{ product.getId }}">Edit</a>
 </div>
 
 

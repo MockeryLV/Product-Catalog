@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models\Collections;
 
 use App\Models\Category;

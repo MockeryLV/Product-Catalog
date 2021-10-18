@@ -1,10 +1,13 @@
 <?php
+session_start();
 require_once 'vendor/autoload.php';
 
 use App\View;
 use Twig\Environment;
 use Twig\Loader\ArrayLoader;
 use App\TwigRenderer;
+
+
 
 $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) {
     $r->addRoute('GET', '/product/index', 'ProductsController@index');
@@ -14,6 +17,14 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
     $r->addRoute('GET', '/product/delete/{id:\d+}', 'ProductsController@delete');
     $r->addRoute('GET', '/product/edit/{id:\d+}', 'ProductsController@edit');
     $r->addRoute('POST', '/product/update/{id:\d+}', 'ProductsController@update');
+    $r->addRoute('GET', '/home/login', 'UserController@login');
+    $r->addRoute('POST', '/home/authenticate', 'UserController@authenticate');
+    $r->addRoute('GET', '/home/logout', 'UserController@logout');
+    $r->addRoute('GET', '/home/products', 'ProductsController@indexByUserId');
+    $r->addRoute('GET', '/home/products/details/{id:\d+}', 'ProductsController@detailsByUser');
+    $r->addRoute('GET', '/home/registration', 'UserController@registration');
+    $r->addRoute('POST', '/home/register', 'UserController@register');
+
 });
 
 // Fetch method and URI from somewhere

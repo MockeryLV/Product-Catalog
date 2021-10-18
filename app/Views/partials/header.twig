@@ -5,3 +5,16 @@
     <title>Product Catalog</title>
 </head>
 <body>
+<nav>
+    {% if username %}
+        Hello, {{ username|capitalize }}!
+        <a href="/home/products">My products</a>
+        <a href="/product/index">Market!</a>
+
+        <a href="/home/logout">Logout</a>
+    {% else %}
+        <a href="/product/index">Market!</a>
+        <a href="/home/login">Login!</a>
+    {% endif %}
+
+</nav>
