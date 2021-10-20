@@ -9,18 +9,26 @@
     <label for="name">Name</label>
     <input type="text" name="name" id="name" value="{{ product.getName }}">
     <br>
+        <span style="color: red"> {{ errors['createProduct']['name'] }}</span>
+        <br>
     <br>
     <label for="description">Description</label>
     <br>
     <textarea rows="10" cols="40" name="description" id="description">{{ product.getDescription }}</textarea>
     <br>
+        <span style="color: red"> {{ errors['createProduct']['description'] }}</span>
+        <br>
     <br>
     <label for="price">Price</label>
     <input type="number" name="price" id="price" value="{{ product.getPrice/100 }}">
     <br>
+        <span style="color: red"> {{ errors['createProduct']['price'] }}</span>
+        <br>
     <br>
     <label for="quantity">Quantity</label>
     <input type="number" name="quantity" id="quantity" value="{{ product.getQuantity }}">
+        <br>
+        <span style="color: red"> {{ errors['createProduct']['quantity'] }}</span>
         <br>
         <h3>Choose tags (optional)</h3>
     <select id="tags" name="tags[]" multiple="multiple">
@@ -29,6 +37,8 @@
             <option value="{{ tag.getTag }}">{{ tag.getTag|capitalize }}</option>
         {%  endfor %}
     </select>
+        <span style="color: red"> {{ errors['createProduct']['tags'] }}</span>
+        <br>
     <input type="hidden" name="id" value="{{ product.getId }}">
     <input type="submit">
     </form>

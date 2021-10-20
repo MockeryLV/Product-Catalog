@@ -9,7 +9,9 @@ use App\Models\Product;
 use App\Repositories\Categories\MySqlCategoriesRepository;
 use App\Repositories\ProductsRepository;
 use App\Repositories\Tags\MySqlTagsRepository;
+use App\Validations\InsertProductValidator;
 use PDO;
+use PDOException;
 
 class MySqlProductsRepository implements ProductsRepository
 {
@@ -23,7 +25,14 @@ class MySqlProductsRepository implements ProductsRepository
     public function __construct()
     {
         require_once 'app/Repositories/config.php';
-        $this->connection = new PDO($dsn, $user, $password);
+
+
+        try{
+            $this->connection = new PDO($dsn, $user, $password);
+        }catch(PDOException $e){
+            throw new PDOException($e->getMessage(), (int)$e->getCode());
+        }
+
         $this->categories = new MySqlCategoriesRepository();
         $this->tags = new MySqlTagsRepository();
     }
@@ -199,46 +208,60 @@ class MySqlProductsRepository implements ProductsRepository
 
 
 
-    public function insert(array $product): void
+    public function insert(array $product): bool
     {
         /*
          *  * will add return type (successfully or not)
          */
 
-        $sql = 'INSERT INTO products (name, description, quantity, price, user_id) VALUES (?,?,?,?,?)';
-        $stmt = $this->connection->prepare($sql);
-        $stmt->execute([
-            $product['name'],
-            $product['description'],
-            $product['quantity'],
-            $product['price'] * 100, // multiplied by 100 to save float values as integers (10 will be saved as 1000)
-            $_SESSION['id']
-        ]);
-
-        $productInfo = $this->getByName($product['name']);
-
-
-        foreach ($product['categories'] as $category) {
-            $sql = 'INSERT INTO product_categories (product_id, category_id) VALUES (:product_id, :category_id)';
+        if(
+            InsertProductValidator::nameValidate($product['name'])
+            &&InsertProductValidator::categoryValidate($product['categories'])
+            &&InsertProductValidator::descriptionValidate($product['description'])
+            &&InsertProductValidator::priceValidate((int)$product['price'])
+            &InsertProductValidator::quantityValidate((int)$product['quantity'])
+            &&InsertProductValidator::tagsValidate($product['tags'])
+        ){
+            $sql = 'INSERT INTO products (name, description, quantity, price, user_id) VALUES (?,?,?,?,?)';
             $stmt = $this->connection->prepare($sql);
             $stmt->execute([
-                'product_id' => $productInfo->getId(),
-                'category_id' => $this
-                    ->categories()
-                    ->getCategoryByName($category)
-                    ->getId()
+                $product['name'],
+                $product['description'],
+                $product['quantity'],
+                $product['price'] * 100, // multiplied by 100 to save float values as integers (10 will be saved as 1000)
+                $_SESSION['id']
             ]);
-        }
-        if (!empty($product['tags'][0])) {
-            foreach ($product['tags'] as $tag) {
-                $sql = 'INSERT INTO product_tags (product_id, tag_id) VALUES (:product_id, :tag_id)';
+
+            $productInfo = $this->getByName($product['name']);
+
+
+            foreach ($product['categories'] as $category) {
+                $sql = 'INSERT INTO product_categories (product_id, category_id) VALUES (:product_id, :category_id)';
                 $stmt = $this->connection->prepare($sql);
                 $stmt->execute([
                     'product_id' => $productInfo->getId(),
-                    'tag_id' => $this->tags()->getTagByName($tag)->getId()
+                    'category_id' => $this
+                        ->categories()
+                        ->getCategoryByName($category)
+                        ->getId()
                 ]);
             }
+            if (!empty($product['tags'][0])) {
+                foreach ($product['tags'] as $tag) {
+                    $sql = 'INSERT INTO product_tags (product_id, tag_id) VALUES (:product_id, :tag_id)';
+                    $stmt = $this->connection->prepare($sql);
+                    $stmt->execute([
+                        'product_id' => $productInfo->getId(),
+                        'tag_id' => $this->tags()->getTagByName($tag)->getId()
+                    ]);
+                }
+            }
+            return true;
+        }else{
+
+            return false;
         }
+
 
     }
 
@@ -261,48 +284,61 @@ class MySqlProductsRepository implements ProductsRepository
 
     }
 
-    public function update(array $product)
+    public function update(array $product): bool
     {
-        $sql = 'UPDATE products SET name=:name,'
-            . ' description=:description, quantity=:quantity, price=:price '
-            . 'WHERE id=:id AND user_id=:user_id';
+        if(
+            InsertProductValidator::nameValidate($product['name'])
+            &&InsertProductValidator::descriptionValidate($product['description'])
+            &&InsertProductValidator::priceValidate((int)$product['price'])
+            &InsertProductValidator::quantityValidate((int)$product['quantity'])
+            &&InsertProductValidator::tagsValidate($product['tags'])
+        ){
 
-        $stmt = $this->connection->prepare($sql);
-        $stmt->execute([
-            'name' => $product['name'],
-            'description' => $product['description'],
-            'quantity' => $product['quantity'],
-            'price' => $product['price'] * 100, // multiplied by 100 to save float values as integers (10 will be saved as 1000)
-            'id' => $product['id'],
-            'user_id' => $_SESSION['id']
-        ]);
-        if ($product['tags']) {
+            $sql = 'UPDATE products SET name=:name,'
+                . ' description=:description, quantity=:quantity, price=:price '
+                . 'WHERE id=:id AND user_id=:user_id';
 
-            $sql = 'DELETE FROM product_tags WHERE product_id = :product_id';
             $stmt = $this->connection->prepare($sql);
-            $stmt->execute(['product_id' => $product['id']]);
+            $stmt->execute([
+                'name' => $product['name'],
+                'description' => $product['description'],
+                'quantity' => $product['quantity'],
+                'price' => $product['price'] * 100, // multiplied by 100 to save float values as integers (10 will be saved as 1000)
+                'id' => $product['id'],
+                'user_id' => $_SESSION['id']
+            ]);
+            if ($product['tags']) {
 
-            if (!empty($product['tags'][0])) {
-                foreach ($product['tags'] as $tag) {
-                    /*
-                     * @var Tag $tag
-                     */
-                    if ($this->tags->getTagByName($tag)) {
-                        $sql = 'INSERT INTO product_tags (product_id, tag_id) VALUES (:product_id, :tag_id)';
-                        $stmt = $this->connection->prepare($sql);
-                        $stmt->execute([
-                            'product_id' => $product['id'],
-                            'tag_id' => $this
-                                ->tags
-                                ->getTagByName($tag)
-                                ->getId()
-                        ]);
+                $sql = 'DELETE FROM product_tags WHERE product_id = :product_id';
+                $stmt = $this->connection->prepare($sql);
+                $stmt->execute(['product_id' => $product['id']]);
+
+                if (!empty($product['tags'][0])) {
+                    foreach ($product['tags'] as $tag) {
+                        /*
+                         * @var Tag $tag
+                         */
+                        if ($this->tags->getTagByName($tag)) {
+                            $sql = 'INSERT INTO product_tags (product_id, tag_id) VALUES (:product_id, :tag_id)';
+                            $stmt = $this->connection->prepare($sql);
+                            $stmt->execute([
+                                'product_id' => $product['id'],
+                                'tag_id' => $this
+                                    ->tags
+                                    ->getTagByName($tag)
+                                    ->getId()
+                            ]);
+                        }
                     }
                 }
+
+
             }
-
-
+            return true;
         }
+        return false;
+
+
 
     }
 

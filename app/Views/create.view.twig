@@ -5,6 +5,8 @@
 
 <form action="/product/insert" method="post">
 
+    <span style="color: red"> {{ errors['createProduct']['category'] }}</span>
+    <br>
     <select id="categories" name="categories[]" multiple="multiple">
         <option value="" selected>Select category</option>
         {% for category in categories %}
@@ -16,18 +18,25 @@
     <label for="name">Product's name:</label>
     <input id="name" type="text" name="name">
     <br>
+    <span style="color: red"> {{ errors['createProduct']['name'] }}</span>
+    <br>
     <br>
     <label for="description">Product's description:</label>
     <br>
     <textarea cols="40" rows="10" id="description" name="description"></textarea>
     <br>
+    <span style="color: red"> {{ errors['createProduct']['description'] }}</span>
     <br>
     <label for="price">Product's price:</label>
     <input id="price" type="number" name="price">
     <br>
+    <span style="color: red"> {{ errors['createProduct']['price'] }}</span>
     <br>
     <label for="quantity">Product's quantity:</label>
     <input id="quantity" type="number" name="quantity">
+    <br>
+    <span style="color: red"> {{ errors['createProduct']['quantity'] }}</span>
+    <br>
     <br>
     <h3>Choose tags (optional)</h3>
     <select id="tags" name="tags[]" multiple="multiple">

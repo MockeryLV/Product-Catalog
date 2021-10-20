@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Collections\TagsCollection;
 use App\Models\Tag;
 use PDO;
+use PDOException;
 
 class MySqlTagsRepository
 {
@@ -21,7 +22,11 @@ class MySqlTagsRepository
         $dbname = 'products_catalog';
 
         $dsn = 'mysql:host=' . $host . ';dbname=' . $dbname;
-        $this->connection = new PDO($dsn, $user, $password);
+        try{
+            $this->connection = new PDO($dsn, $user, $password);
+        }catch(PDOException $e){
+            throw new PDOException($e->getMessage(), (int)$e->getCode());
+        }
     }
 
 

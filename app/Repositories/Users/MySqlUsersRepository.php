@@ -5,6 +5,7 @@ namespace App\Repositories\Users;
 use App\Repositories\UsersRepository;
 use App\Validations\RegisterValidator;
 use PDO;
+use PDOException;
 
 class MySqlUsersRepository implements UsersRepository
 {
@@ -20,7 +21,11 @@ class MySqlUsersRepository implements UsersRepository
 
         $dsn = 'mysql:host=' . $host . ';dbname=' . $dbname;
 
-        $this->connection = new PDO($dsn, $user, $password);
+        try{
+            $this->connection = new PDO($dsn, $user, $password);
+        }catch(PDOException $e){
+            throw new PDOException($e->getMessage(), (int)$e->getCode());
+        }
     }
 
     public function authenticate(array $loginData): bool
@@ -45,7 +50,7 @@ class MySqlUsersRepository implements UsersRepository
             if ($username) {
                 $_SESSION['id'] = $id;
                 $_SESSION['username'] = $username;
-
+                unset($_SESSION['errors']['registration']);
                 unset($_SESSION['errors']['loginFail']);
                 return true;
             }
@@ -83,6 +88,7 @@ class MySqlUsersRepository implements UsersRepository
                 return true;
 
         } else {
+
             header('Location: /home/registration');
         }
 

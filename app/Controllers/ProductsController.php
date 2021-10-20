@@ -74,10 +74,8 @@ class ProductsController
     public function insert(): void
     {
 
+        $this->products->insert($_POST) ? header('Location: /home/products') : header('Location: /product/create');
 
-        $this->products->insert($_POST);
-
-        header('Location: /home/products');
     }
 
     public function delete(int $id): void
@@ -101,10 +99,10 @@ class ProductsController
     public function update(): void
     {
 
-        $this->products->update($_POST);
+        $this->products->update($_POST) ? header("Location: /home/products/details/" . $_POST['id']) : header('Location: /product/edit/' . $_POST['id']);;
 
 
-        header("Location: /home/products/details/" . $_POST['id']);
+
     }
 
     public function indexByUserId(): View
