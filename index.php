@@ -2,6 +2,7 @@
 session_start();
 require_once 'vendor/autoload.php';
 
+use App\Middlewares\AuthorizedMiddleware;
 use App\View;
 use Twig\Environment;
 use Twig\Loader\ArrayLoader;
@@ -51,6 +52,39 @@ switch ($routeInfo[0]) {
 
         $handler = $routeInfo[1];
         $vars = $routeInfo[2];
+
+        $middlewares = [
+
+            'ProductsController@insert' => [
+                AuthorizedMiddleware::class
+            ],
+            'ProductsController@create' => [
+                AuthorizedMiddleware::class
+            ],
+            'ProductsController@delete' => [
+                AuthorizedMiddleware::class
+            ],
+            'ProductsController@edit' => [
+                AuthorizedMiddleware::class
+            ],
+            'ProductsController@update' => [
+                AuthorizedMiddleware::class
+            ],
+            'ProductsController@indexByUser' => [
+                AuthorizedMiddleware::class
+            ],
+            'ProductsController@detailsByUser' => [
+                AuthorizedMiddleware::class
+            ]
+
+        ];
+
+
+        if(array_key_exists($handler, $middlewares)){
+            foreach ($middlewares[$handler] as $middleware){
+                (new $middleware())->handle();
+            }
+        }
 
         [$controller, $method] = explode('@', $handler);
         $controller = 'App\Controllers\\' . $controller;
