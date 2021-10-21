@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Container;
 use App\Models\Product;
 use App\Repositories\Products\MySqlProductsRepository;
 use App\View;
@@ -11,21 +12,22 @@ class ProductsController
 
     private MySqlProductsRepository $products;
 
-    public function __construct()
+    public function __construct(Container $container)
     {
-        $this->products = new MySqlProductsRepository();
+
+        $this->products = $container->get(MySqlProductsRepository::class);
     }
 
     public function index(): View
     {
 
-        if ($_GET['name']) {
+        if (isset($_GET['name'])) {
             $products = [$this->products->getByName($_GET['name'])];
-        } elseif ($_GET['category']) {
+        } elseif (isset($_GET['category'])) {
             $products = $this->products->getByCategory($_GET['category'])->getProducts();
 
-        } elseif ($_GET['tag']) {
-            $products = $this->products->getByTag($_GET['tag'])->getProducts();
+        } elseif (isset($_GET['tags'])) {
+            $products = $this->products->getByTags($_GET['tags'])->getProducts();
         } else {
             $products = $this->products->getAll()->getProducts();
         }

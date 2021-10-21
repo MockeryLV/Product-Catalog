@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Products;
 
+use App\Container;
 use App\Models\Category;
 use App\Models\Collections\CategoryCollection;
 use App\Models\Collections\ProductCollection;
@@ -22,10 +23,14 @@ class MySqlProductsRepository implements ProductsRepository
 
     private MySqlTagsRepository $tags;
 
-    public function __construct()
+    public function __construct(Container $container)
     {
-        require_once 'app/Repositories/config.php';
+        $host = 'localhost';
+        $user = 'root';
+        $password = '';
+        $dbname = 'products_catalog';
 
+        $dsn = 'mysql:host=' . $host . ';dbname=' . $dbname;
 
         try{
             $this->connection = new PDO($dsn, $user, $password);
@@ -33,8 +38,8 @@ class MySqlProductsRepository implements ProductsRepository
             throw new PDOException($e->getMessage(), (int)$e->getCode());
         }
 
-        $this->categories = new MySqlCategoriesRepository();
-        $this->tags = new MySqlTagsRepository();
+        $this->categories = $container->get(MySqlCategoriesRepository::class);
+        $this->tags = $container->get(MySqlTagsRepository::class);
     }
 
 
@@ -177,18 +182,37 @@ class MySqlProductsRepository implements ProductsRepository
 
     }
 
-    public function getByTag(string $tag): ProductCollection
+    public function getByTags(array $tags): ProductCollection
     {
 
         $products = [];
 
+        if(count($tags) > 1){
+            $sql = "SELECT name, p.id, p.description, p.price, p.quantity, p.user_id, COUNT(NAME) FROM products p JOIN product_tags pt ON pt.product_id = p.id JOIN tags t ON t.tag_id = pt.tag_id WHERE";
+            foreach ($tags as $key => $tag){
+                if($key === 0){
+                    $sql.=" t.tag = '" . $tag . "' ";
+                }else{
+                    $sql.=" or t.tag = '" . $tag. "'" ;
+                }
 
-        $sql = 'SELECT id, name, description, quantity, price, user_id '
+            }
+
+
+            $sql.= " GROUP	BY	NAME, p.id, p.description, p.price, p.quantity, p.user_id HAVING COUNT(NAME) > :count";
+            $stmt = $this->connection->prepare($sql);
+            $stmt->execute(['count' => count($tags)-1]);
+        }else{
+                    $sql = 'SELECT id, name, description, quantity, price, user_id '
             . 'FROM tags LEFT JOIN product_tags USING (tag_id)'
             . ' INNER JOIN products WHERE product_id = id AND tag = :tag;';
+            $stmt = $this->connection->prepare($sql);
+            $stmt->execute(['tag' => $tags[0]]);
+        }
 
-        $stmt = $this->connection->prepare($sql);
-        $stmt->execute(['tag' => $tag]);
+
+
+
 
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
             $products[] = new Product(
@@ -290,7 +314,7 @@ class MySqlProductsRepository implements ProductsRepository
             InsertProductValidator::nameValidate($product['name'])
             &&InsertProductValidator::descriptionValidate($product['description'])
             &&InsertProductValidator::priceValidate((int)$product['price'])
-            &InsertProductValidator::quantityValidate((int)$product['quantity'])
+            &&InsertProductValidator::quantityValidate((int)$product['quantity'])
             &&InsertProductValidator::tagsValidate($product['tags'])
         ){
 

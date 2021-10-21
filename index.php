@@ -2,11 +2,20 @@
 session_start();
 require_once 'vendor/autoload.php';
 
+use App\Container;
 use App\Middlewares\AuthorizedMiddleware;
+use App\Repositories\Categories\MySqlCategoriesRepository;
+use App\Repositories\Products\MySqlProductsRepository;
+use App\Repositories\Tags\MySqlTagsRepository;
+use App\Repositories\Users\MySqlUsersRepository;
 use App\View;
 use Twig\Environment;
 use Twig\Loader\ArrayLoader;
 use App\TwigRenderer;
+
+
+
+
 
 
 
@@ -86,9 +95,17 @@ switch ($routeInfo[0]) {
             }
         }
 
+
+        $container =  new Container();
+        $container->add(MySqlUsersRepository::class, new MySqlUsersRepository());
+        $container->add(MySqlTagsRepository::class, new MySqlTagsRepository());
+        $container->add(MySqlCategoriesRepository::class, new MySqlCategoriesRepository());
+        $container->add(MySqlProductsRepository::class, new MySqlProductsRepository($container));
+
+
         [$controller, $method] = explode('@', $handler);
         $controller = 'App\Controllers\\' . $controller;
-        $controller = new $controller();
+        $controller = new $controller($container);
         $response = $controller->$method($vars['id']);
         if($response instanceof View){
             TwigRenderer::render($response->getPath(), $response->getVars());
