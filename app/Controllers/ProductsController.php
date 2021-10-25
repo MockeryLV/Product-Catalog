@@ -3,61 +3,77 @@
 namespace App\Controllers;
 
 use App\Container;
+use App\DTOs\ProductData;
 use App\Models\Product;
 use App\Repositories\Products\MySqlProductsRepository;
+
+use App\Services\ProductServices\AllProductListService;
+use App\Services\ProductServices\CreateProductService;
+use App\Services\ProductServices\DeleteProductService;
+use App\Services\ProductServices\EditProductService;
+use App\Services\ProductServices\InsertProductService;
+use App\Services\ProductServices\ProductDetailsService;
+use App\Services\ProductServices\UpdateProductService;
+use App\Services\ProductServices\UserProductDetailsService;
+use App\Services\ProductServices\UserProductListService;
 use App\View;
 
 class ProductsController
 {
 
-    private MySqlProductsRepository $products;
+
+    private AllProductListService $allProductListService;
+    private ProductDetailsService $productDetailsService;
+
+    private UserProductDetailsService $userProductDetailsSerivice;
+    private CreateProductService $createProductService;
+
+    private InsertProductService $insertProductService;
+
+    private DeleteProductService $deleteProductService;
+
+    private EditProductService $editProductService;
+
+    private UpdateProductService $updateProductService;
+
+    private UserProductListService $userProductListService;
 
     public function __construct(Container $container)
     {
 
         $this->products = $container->get(MySqlProductsRepository::class);
+        $this->allProductListService = new AllProductListService($container);
+        $this->productDetailsService = new ProductDetailsService($container);
+        $this->userProductDetailsSerivice = new UserProductDetailsService($container);
+        $this->createProductService = new CreateProductService($container);
+        $this->insertProductService = new InsertProductService($container);
+        $this->deleteProductService = new DeleteProductService($container);
+        $this->editProductService = new EditProductService($container);
+        $this->updateProductService = new UpdateProductService($container);
+        $this->userProductListService = new UserProductListService($container);
     }
 
     public function index(): View
     {
 
-        if (isset($_GET['name'])) {
-            $products = [$this->products->getByName($_GET['name'])];
-        } elseif (isset($_GET['category'])) {
-            $products = $this->products->getByCategory($_GET['category'])->getProducts();
+        $response = $this->allProductListService->execute((new ProductData($_GET))->getProductData());
 
-        } elseif (isset($_GET['tags'])) {
-            $products = $this->products->getByTags($_GET['tags'])->getProducts();
-        } else {
-            $products = $this->products->getAll()->getProducts();
-        }
-        $categories = $this->products->categories()->getAllCategories()->getCategories();
-        $tags = $this->products->tags()->getAllTag()->getTags();
-        return new View('index.view.twig', [
-            'products' => $products,
-            'categories' => $categories,
-            'currentCategory' => $_GET['category'],
-            'tags' => $tags,
-            'currentTag' => $_GET['tag']
-        ]);
+        return $response;
 
     }
 
     public function details(int $id): View
     {
 
-        $product = $this->products->getById($id);
-
-        return new View('details.view.twig', ['product' => $product]);
+        $response = $this->productDetailsService->execute($id);
+        return $response;
 
     }
 
     public function detailsByUser(int $id): View
     {
-
-        $product = $this->products->getById($id);
-
-        return new View('user/user.details.view.twig', ['product' => $product]);
+        $response = $this->userProductDetailsSerivice->execute($id);
+        return $response;
 
     }
 
@@ -65,55 +81,44 @@ class ProductsController
     {
 
 
-        return new View('create.view.twig',
-            [
-                'categories' => $this->products->categories()->getAllCategories()->getCategories(),
-                'tags' => $this->products->tags()->getAllTag()->getTags()
-            ]);
+        $response = $this->createProductService->execute();
+
+        return $response;
 
     }
 
     public function insert(): void
     {
 
-        $this->products->insert($_POST) ? header('Location: /home/products') : header('Location: /product/create');
+        $this->insertProductService->execute((new ProductData($_POST))->getProductData());
 
     }
 
     public function delete(int $id): void
     {
 
+        $this->deleteProductService->execute($id);
 
-        $this->products->delete($id);
-
-        header('Location: /home/products');
     }
 
     public function edit(int $id): View
     {
-
-        $product = $this->products->getById($id);
-        $tags = $this->products->tags()->getAllTag()->getTags();
-        return new View('user/user.edit.view.twig', ['product' => $product, 'tags' => $tags]);
-
+        $response = $this->editProductService->execute($id);
+        return $response;
     }
 
     public function update(): void
     {
 
-        $this->products->update($_POST) ? header("Location: /home/products/details/" . $_POST['id']) : header('Location: /product/edit/' . $_POST['id']);;
-
-
+        $this->updateProductService->execute((new ProductData($_POST))->getProductData());
 
     }
 
     public function indexByUserId(): View
     {
 
-
-        $products = $this->products->getByUserId($_SESSION['id'])->getProducts();
-
-        return new View('user/user.index.view.twig', ['products' => $products]);
+        $response = $this->userProductListService->execute($_SESSION['id']);
+        return $response;
 
     }
 

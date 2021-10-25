@@ -4,6 +4,11 @@ namespace App\Controllers;
 
 use App\Container;
 use App\Repositories\Users\MySqlUsersRepository;
+use App\Services\UserServices\AddNewUserService;
+use App\Services\UserServices\LoginFromService;
+use App\Services\UserServices\UserLoginService;
+use App\Services\UserServices\UserLogoutService;
+use App\Services\UserServices\UserRegistrationFormService;
 use App\View;
 
 class UserController
@@ -11,45 +16,56 @@ class UserController
 
     private MySqlUsersRepository $users;
 
+    private UserLoginService $userLoginService;
+    private UserRegistrationFormService $userRegistrationFormService;
+    private AddNewUserService $addNewUserService;
+
+
     public function __construct(Container $container)
     {
         $this->users = $container->get(MySqlUsersRepository::class);
+        $this->userLoginService = new UserLoginService($container);
+        $this->userLogoutService = new UserLogoutService($container);
+        $this->userRegistrationFormService =  new UserRegistrationFormService($container);
+        $this->addNewUserService = new AddNewUserService($container);
+        $this->loginFormService = new LoginFromService($container);
     }
 
     public function login(): View
     {
-        return new View('auth/login.view.twig', []);
+        $response = $this->loginFormService->execute();
+
+        return $response;
+
     }
 
     public function authenticate(): void
     {
 
-        $this->users->authenticate($_POST) ? header('Location: /home/products') : header('Location: /home/login');
+        $this->userLoginService->execute();
 
     }
 
     public function logout(): void
     {
 
-        unset($_SESSION['username']);
-        unset($_SESSION['id']);
-        header('Location: /home/login');
+        $this->userLogoutService->execute();
 
     }
 
     public function registration(): View
     {
 
-        return new View('user/user.registration.view.twig', []);
+        $response = $this->userRegistrationFormService->execute();
 
+        return $response;
     }
 
     public function register(): void
     {
 
-        if($this->users->register($_POST));
+        $this->addNewUserService->execute();
 
-        header('Location: /home/login');
     }
 
 }
